@@ -1,0 +1,8 @@
+Geocoder:
+https://nominatim.org/release-docs/develop/
+https://nominatim.openstreetmap.org/search?q=space+seperated+query&format=json
+
+Weather:
+https://www.weather.gov/documentation/services-web-api#/
+https://api.weather.gov/gridpoints/gridid(office)/gridx,gridy/forecast
+should use User-Agent: (myweatherapp.com, contact@myweatherapp.com)
