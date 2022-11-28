@@ -1,96 +1,89 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:weather/features/data/weather_api_models.dart';
+import 'package:weather/features/data/weather_api_exceptions.dart';
 
 class WeatherAPI {
   static getForecast(input) async {
-      var responseGeocode = await GeoCodeCalls.fetchGeocode(input);
-      var responsePoints = await WeatherCalls.fetchPoints(responseGeocode.lat,responseGeocode.lon);
-      var responseForecast = await WeatherCalls.fetchForecast(responsePoints.office, responsePoints.gridX, responsePoints.gridY);
+      var responseGeocode = await GeoCodeCalls.fetchGeocode(http.Client, input);
+      var responsePoints = await WeatherCalls.fetchPoints(http.Client, responseGeocode.lat,responseGeocode.lon);
+      var responseForecast = await WeatherCalls.fetchForecast(http.Client, responsePoints);
       return responseForecast;
   }
 }
 
 class GeoCodeCalls {
-  static fetchGeocode(inputQuery) async {
+  static fetchGeocode(client, inputQuery) async {
     var geocodeResponse = GeocodeResponse();
     try {
-      final cleanedURI = cleanURI(inputQuery);
-      final response = await fetchGeocodeCall(cleanedURI);
+      final response = await fetchGeocodeCall(client, inputQuery);
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body)[0];
         geocodeResponse.name =  json['display_name'];
         geocodeResponse.lat =  json['lat'];
         geocodeResponse.lon =  json['lon'];
       } else {
-        throw Exception();  
+        throw GeocodeException();  
       }
     } catch(e) {
-      throw Exception('Error getting geocode from Nominatim');
+      rethrow;
     }
     
     return geocodeResponse;
   }
 
-  static String cleanURI(inputQuery) {
+  static Future<http.Response> fetchGeocodeCall(client, inputQuery) {
     final splitQuery = inputQuery.split(' ');
     final combinedQuery = splitQuery.join('+');
-
-    return 'https://nominatim.openstreetmap.org/search?q=$combinedQuery&format=json';
-  }
-
-  static Future<http.Response> fetchGeocodeCall(cleanedURI) {
-    return http.get(Uri.parse(cleanedURI));
+    final uri = 'https://nominatim.openstreetmap.org/search?q=$combinedQuery&format=json';
+    return client.get(Uri.parse(uri));
   }
 }
 
 class WeatherCalls {
-  static fetchPoints(lat, lon) async {
-    var pointsResponse = PointsResponse();
+  static fetchPoints(client, lat, lon) async {
+    var pointsResponse = '';
     try {
-      final response = await fetchPointsCall(lat, lon);
+      final response = await fetchPointsCall(client, lat, lon);
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body)['properties'];
-        pointsResponse.office =  json['gridId'];
-        pointsResponse.gridX =  json['gridX'].toString();
-        pointsResponse.gridY =  json['gridY'].toString();
+        pointsResponse = json['forecast']; 
       } else {
-        throw Exception();
+        throw PointsException();
       }
     } catch(e) {
-      throw Exception('Error getting points from NOAA');
+      rethrow;
     }
     
     return pointsResponse;
   }
 
-  static Future<http.Response> fetchPointsCall(lat, lon) {
+  static Future<http.Response> fetchPointsCall(client, lat, lon) {
     final uri = 'https://api.weather.gov/points/$lat,$lon';
-    return http.get(Uri.parse(uri));
+    return client.get(Uri.parse(uri));
   }
 
-  static fetchForecast(office, gridX, gridY) async {
+  static fetchForecast(client, uri) async {
     List<Period> periods = [];
     try {
-      final response = await fetchForecastCall(office, gridX, gridY);
+      final response = await fetchForecastCall(client, uri);
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body)['properties']['periods'];
         for(var period in json){
-          Period.fromJson(period);
+          periods.add(Period.fromJson(period));
         }
       } else {
-        throw Exception();
+        throw ForecastException();
       }
     } catch(e) {
-      throw Exception('Error getting forecast from NOAA');
+      rethrow;
     }
 
     final forecastResponse = ForecastResponse(periods: periods);
     return forecastResponse;
   }
 
-  static Future<http.Response> fetchForecastCall(office, gridX, gridY) {
-    final uri = 'https://api.weather.gov/gridpoints/$office/$gridX,$gridY/forecast';
-    return http.get(Uri.parse(uri));
+  static Future<http.Response> fetchForecastCall(client, uri) {
+    return client.get(Uri.parse(uri));
   }
 }

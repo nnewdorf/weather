@@ -13,15 +13,6 @@ class GeocodeResponse with _$GeocodeResponse {
 }
 
 @unfreezed
-class PointsResponse with _$PointsResponse {
-  factory PointsResponse({
-    @Default('') String office,
-    @Default('') String gridX,
-    @Default('') String gridY
-  }) = _PointsResponse;
-}
-
-@unfreezed
 class ForecastResponse with _$ForecastResponse {
   factory ForecastResponse({
     required List<Period> periods
