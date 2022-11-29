@@ -4,11 +4,22 @@ import 'package:weather/features/data/weather_api_models.dart';
 import 'package:weather/features/data/weather_api_exceptions.dart';
 
 class WeatherAPI {
-  static getForecast(input) async {
-      var responseGeocode = await GeoCodeCalls.fetchGeocode(http.Client, input);
-      var responsePoints = await WeatherCalls.fetchPoints(http.Client, responseGeocode.lat,responseGeocode.lon);
-      var responseForecast = await WeatherCalls.fetchForecast(http.Client, responsePoints);
+  static fetchForecastPeriods(input) async {
+      final client = ClientWithUserAgent();
+      var responseGeocode = await GeoCodeCalls.fetchGeocode(client, input);
+      var responsePoints = await WeatherCalls.fetchPoints(client, responseGeocode.lat,responseGeocode.lon);
+      var responseForecast = await WeatherCalls.fetchForecast(client, responsePoints);
       return responseForecast;
+  }
+}
+
+class ClientWithUserAgent extends http.BaseClient {
+  final http.Client _client = http.Client();
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    request.headers['User-Agent'] = 'weatherdemoapp.com';
+    return _client.send(request);
   }
 }
 
@@ -79,8 +90,7 @@ class WeatherCalls {
       rethrow;
     }
 
-    final forecastResponse = ForecastResponse(periods: periods);
-    return forecastResponse;
+    return periods;
   }
 
   static Future<http.Response> fetchForecastCall(client, uri) {

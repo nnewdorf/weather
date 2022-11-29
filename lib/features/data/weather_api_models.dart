@@ -13,13 +13,6 @@ class GeocodeResponse with _$GeocodeResponse {
 }
 
 @unfreezed
-class ForecastResponse with _$ForecastResponse {
-  factory ForecastResponse({
-    required List<Period> periods
-  }) = _ForecastResponse;
-}
-
-@unfreezed
 class Period with _$Period {
   factory Period({
     required String name,

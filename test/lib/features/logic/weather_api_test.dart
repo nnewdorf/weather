@@ -55,7 +55,7 @@ void main() {
   });
 
   group('fetchPoints', () {
-    test('returns PointsResponse when http response is successful',
+    test('returns String when http response is successful',
         () async {
       final mockHTTPClient = MockClient((request) async {
         final response = {
@@ -101,7 +101,7 @@ void main() {
   });
 
     group('fetchForecast', () {
-    test('returns ForecastResponse when http response is successful',
+    test('returns List<Period> when http response is successful',
         () async {
       final mockHTTPClient = MockClient((request) async {
         final response = {
@@ -151,18 +151,18 @@ void main() {
         return Response(jsonEncode(response), 200);
       });
       
-      ForecastResponse forecastResponse = await(WeatherCalls.fetchForecast(mockHTTPClient, 'uri'));
-      expect(forecastResponse.periods.length, 2);
-      expect(forecastResponse.periods[0].name, 'mockName');
-      expect(forecastResponse.periods[0].isDaytime, true);
-      expect(forecastResponse.periods[0].temperature, 12);
-      expect(forecastResponse.periods[0].windSpeed, 'mockWindSpeed');
-      expect(forecastResponse.periods[0].shortForecast, 'mockShortForecast');
-      expect(forecastResponse.periods[1].name, 'mockName2');
-      expect(forecastResponse.periods[1].isDaytime, false);
-      expect(forecastResponse.periods[1].temperature, 21);
-      expect(forecastResponse.periods[1].windSpeed, 'mockWindSpeed2');
-      expect(forecastResponse.periods[1].shortForecast, 'mockShortForecast2');
+      List<Period> forecastResponse = await(WeatherCalls.fetchForecast(mockHTTPClient, 'uri'));
+      expect(forecastResponse.length, 2);
+      expect(forecastResponse[0].name, 'mockName');
+      expect(forecastResponse[0].isDaytime, true);
+      expect(forecastResponse[0].temperature, 12);
+      expect(forecastResponse[0].windSpeed, 'mockWindSpeed');
+      expect(forecastResponse[0].shortForecast, 'mockShortForecast');
+      expect(forecastResponse[1].name, 'mockName2');
+      expect(forecastResponse[1].isDaytime, false);
+      expect(forecastResponse[1].temperature, 21);
+      expect(forecastResponse[1].windSpeed, 'mockWindSpeed2');
+      expect(forecastResponse[1].shortForecast, 'mockShortForecast2');
     });
 
     test('returns ForecastException when http response is error',
