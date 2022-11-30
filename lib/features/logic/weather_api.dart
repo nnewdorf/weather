@@ -1,15 +1,25 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather/features/data/weather_api_models.dart';
 import 'package:weather/features/data/weather_api_exceptions.dart';
 
 class WeatherAPI {
-  static fetchForecastPeriods(input) async {
-      final client = ClientWithUserAgent();
-      var responseGeocode = await GeoCodeCalls.fetchGeocode(client, input);
-      var responsePoints = await WeatherCalls.fetchPoints(client, responseGeocode.lat,responseGeocode.lon);
-      var responseForecast = await WeatherCalls.fetchForecast(client, responsePoints);
-      return responseForecast;
+  static fetchForecastPeriods(forecasturi) async {
+    final client = ClientWithUserAgent();
+
+    var responseForecast = await WeatherCalls.fetchForecast(client, forecasturi);
+    return responseForecast;
+  }
+
+  static fetchLocationData(input) async {
+    final client = ClientWithUserAgent();
+    var responseGeocode = await GeoCodeCalls.fetchGeocode(client, input);
+    var responsePoints = await WeatherCalls.fetchPoints(client, responseGeocode.lat,responseGeocode.lon);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('forecasturi', responsePoints);
+    return responsePoints;
   }
 }
 
@@ -18,7 +28,7 @@ class ClientWithUserAgent extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    request.headers['User-Agent'] = 'weatherdemoapp.com';
+    request.headers['User-Agent'] = 'weatherdemoapp';
     return _client.send(request);
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:weather/features/data/weather_api_models.dart';
 import 'package:weather/features/logic/weather_provider.dart';
 import 'package:weather/features/views/settings_page.dart';
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather/features/logic/weather_provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -27,8 +26,6 @@ class Settings extends HookConsumerWidget {
 
     handleSubmit() async {
       if (locationController.text.isNotEmpty) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('location', locationController.text);
         ref.read(weatherNotifierProvider.notifier).getForecastOnLocationUpdate(locationController.text);
       }
     }

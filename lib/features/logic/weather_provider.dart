@@ -8,31 +8,36 @@ final weatherNotifierProvider = StateNotifierProvider<WeatherNotifier, WeatherSt
 
 class WeatherNotifier extends StateNotifier<WeatherState> {
   WeatherNotifier(WeatherState state) : super(state) {
-    getForecastOnStartup();
+    onStartup();
+  }
+
+  Future<void> onStartup() async {
+      var prefs = await SharedPreferences.getInstance();
+      var forecasturi = prefs.getString('forecasturi');
+      if (null == forecasturi) {
+        state = const WeatherState.noLocation();
+      } else {
+        getForecast(forecasturi);
+      }
   }
 
   Future<void> getForecastOnLocationUpdate(location) async {
     state = const WeatherState.loading();
 
     try {
-      if(null != location){
-        final List<Period> periods = await WeatherAPI.fetchForecastPeriods(location);
-        state = WeatherState.data(periods: periods);
-      } else {
-        state = const WeatherState.noLocation();
-      }
+      var forecasturi = await WeatherAPI.fetchLocationData(location);
+      getForecast(forecasturi);
     } catch(e) {
-      state = const WeatherState.error(message: 'Error attempting to get forecast! Please try again later.');
+      state = const WeatherState.error(message: 'Error attempting to get location data! Please verify location and try again.');
     }
   }
 
-  Future<void> getForecastOnStartup() async {
+  Future<void> getForecast(forecasturi) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      var location = prefs.getString('location');
-      getForecastOnLocationUpdate(location);
+      final List<Period> periods = await WeatherAPI.fetchForecastPeriods(forecasturi);
+      state = WeatherState.data(periods: periods);
     } catch(e) {
-      state = const WeatherState.error(message: 'Error retrieving saved settings.');
+      state = const WeatherState.error(message: 'Error attempting to get forecast! Please try again later.');
     }
   }
 }
